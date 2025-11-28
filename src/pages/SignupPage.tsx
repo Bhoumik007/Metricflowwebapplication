@@ -59,8 +59,9 @@ export function SignupPage() {
     setIsLoading(true);
     
     try {
+      console.log('📝 Signing up with:', formData.email);
       const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-716cadf3/signup`,
+        `https://${projectId}.supabase.co/functions/v1/make-server-716cadf3/auth/signup`,
         {
           method: 'POST',
           headers: {
@@ -70,8 +71,8 @@ export function SignupPage() {
           body: JSON.stringify({
             email: formData.email,
             password: formData.password,
-            full_name: formData.fullName,
-            business_name: formData.businessName
+            fullName: formData.fullName,
+            businessName: formData.businessName
           }),
         }
       );
@@ -79,17 +80,23 @@ export function SignupPage() {
       const data = await response.json();
 
       if (!response.ok) {
+        console.error('❌ Signup error:', data.error);
         setServerError(data.error || 'Failed to create account');
         setIsLoading(false);
         return;
       }
 
-      if (data.access_token) {
-        localStorage.setItem('supabase.auth.token', data.access_token);
+      console.log('✅ Signup successful');
+      if (data.session?.access_token) {
+        localStorage.setItem('supabase.auth.token', data.session.access_token);
+        console.log('🚀 Navigating to dashboard');
         navigate('/dashboard');
+      } else {
+        setServerError('Account created but login failed. Please try logging in.');
+        setIsLoading(false);
       }
     } catch (error) {
-      console.error('Signup error:', error);
+      console.error('❌ Signup error:', error);
       setServerError('An unexpected error occurred. Please try again.');
       setIsLoading(false);
     }

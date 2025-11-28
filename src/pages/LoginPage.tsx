@@ -46,22 +46,31 @@ export function LoginPage() {
     setIsLoading(true);
 
     try {
+      console.log('🔐 Attempting login for:', email);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
-        console.error('Login error:', error);
-        setServerError(error.message);
+        console.error('❌ Login error:', error.message);
+        // Provide user-friendly error messages
+        if (error.message.includes('Invalid login credentials')) {
+          setServerError('Invalid email or password. Please check your credentials and try again.');
+        } else if (error.message.includes('Email not confirmed')) {
+          setServerError('Please verify your email address before logging in.');
+        } else {
+          setServerError(error.message);
+        }
         setIsLoading(false);
         return;
       }
 
       if (data?.session) {
-        console.log('✅ Login successful');
+        console.log('✅ Login successful for user:', data.user.email);
         // Store the access token
         localStorage.setItem('supabase.auth.token', data.session.access_token);
+        console.log('🚀 Navigating to dashboard');
         // Navigate to dashboard
         navigate('/dashboard');
       } else {
@@ -69,7 +78,7 @@ export function LoginPage() {
         setIsLoading(false);
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('❌ Login error:', error);
       setServerError('An unexpected error occurred. Please try again.');
       setIsLoading(false);
     }

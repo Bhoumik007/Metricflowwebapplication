@@ -85,12 +85,14 @@ app.get('/make-server-716cadf3/metrics', async (c) => {
       return c.json({ error: 'Unauthorized' }, 401);
     }
     
-    const userMetrics = await kv.getByPrefix(`metrics:${user.id}:`);
-    const metrics = userMetrics.map(item => item.value);
+    console.log(`📊 Fetching metrics for user: ${user.id}`);
+    const metrics = await kv.getByPrefix(`metrics:${user.id}:`);
+    console.log(`✅ Found ${metrics.length} metrics for user ${user.id}`);
     
+    // getByPrefix already returns the values directly, no need to map
     return c.json({ metrics });
   } catch (error) {
-    console.log(`Error fetching metrics: ${error}`);
+    console.log(`❌ Error fetching metrics: ${error}`);
     return c.json({ error: 'Failed to fetch metrics' }, 500);
   }
 });
@@ -105,30 +107,29 @@ app.post('/make-server-716cadf3/metrics', async (c) => {
     
     const { metric_name, current_value, target_value, unit, category } = await c.req.json();
     
-    if (!metric_name || current_value === undefined || target_value === undefined || !unit || !category) {
-      return c.json({ error: 'All fields are required' }, 400);
-    }
-    
+    // All fields are now optional - use defaults for missing values
     const metricId = crypto.randomUUID();
     const now = new Date().toISOString();
     
     const metric = {
       id: metricId,
       user_id: user.id,
-      metric_name,
-      current_value: parseFloat(current_value),
-      target_value: parseFloat(target_value),
-      unit,
-      category,
+      metric_name: metric_name || 'Untitled Metric',
+      current_value: current_value !== undefined ? parseFloat(current_value) : 0,
+      target_value: target_value !== undefined ? parseFloat(target_value) : 0,
+      unit: unit || '',
+      category: category || 'Sales',
       created_at: now,
       last_updated: now
     };
     
+    console.log(`💾 Creating metric for user ${user.id}:`, metric.metric_name);
     await kv.set(`metrics:${user.id}:${metricId}`, metric);
+    console.log(`✅ Metric created successfully with ID: ${metricId}`);
     
     return c.json({ metric });
   } catch (error) {
-    console.log(`Error creating metric: ${error}`);
+    console.log(`❌ Error creating metric: ${error}`);
     return c.json({ error: 'Failed to create metric' }, 500);
   }
 });
@@ -144,9 +145,12 @@ app.put('/make-server-716cadf3/metrics/:id', async (c) => {
     const metricId = c.req.param('id');
     const { metric_name, current_value, target_value, unit, category } = await c.req.json();
     
+    console.log(`🔄 Updating metric ${metricId} for user ${user.id}`);
+    
     // Get existing metric to verify ownership
     const existingMetric = await kv.get(`metrics:${user.id}:${metricId}`);
     if (!existingMetric) {
+      console.log(`❌ Metric ${metricId} not found for user ${user.id}`);
       return c.json({ error: 'Metric not found' }, 404);
     }
     
@@ -162,10 +166,11 @@ app.put('/make-server-716cadf3/metrics/:id', async (c) => {
     };
     
     await kv.set(`metrics:${user.id}:${metricId}`, updatedMetric);
+    console.log(`✅ Metric ${metricId} updated successfully`);
     
     return c.json({ metric: updatedMetric });
   } catch (error) {
-    console.log(`Error updating metric: ${error}`);
+    console.log(`❌ Error updating metric: ${error}`);
     return c.json({ error: 'Failed to update metric' }, 500);
   }
 });
@@ -175,22 +180,27 @@ app.delete('/make-server-716cadf3/metrics/:id', async (c) => {
   try {
     const { user, error: authError } = await verifyUser(c.req.raw);
     if (authError || !user) {
+      console.log(`❌ Delete unauthorized: ${authError}`);
       return c.json({ error: 'Unauthorized' }, 401);
     }
     
     const metricId = c.req.param('id');
+    console.log(`🗑️ Attempting to delete metric ${metricId} for user ${user.id}`);
     
     // Verify metric exists and belongs to user
     const existingMetric = await kv.get(`metrics:${user.id}:${metricId}`);
     if (!existingMetric) {
+      console.log(`❌ Metric ${metricId} not found for user ${user.id}`);
       return c.json({ error: 'Metric not found' }, 404);
     }
     
+    console.log(`🔍 Found metric: ${existingMetric.metric_name}`);
     await kv.del(`metrics:${user.id}:${metricId}`);
+    console.log(`✅ Metric ${metricId} deleted successfully`);
     
     return c.json({ success: true });
   } catch (error) {
-    console.log(`Error deleting metric: ${error}`);
+    console.log(`❌ Error deleting metric: ${error}`);
     return c.json({ error: 'Failed to delete metric' }, 500);
   }
 });

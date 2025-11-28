@@ -239,39 +239,50 @@ export function DashboardPage() {
   };
 
   const handleDeleteConfirm = async () => {
-    if (!deleteConfirmMetric) return;
+    if (!deleteConfirmMetric) {
+      console.error('❌ No metric selected for deletion');
+      return;
+    }
 
     try {
+      console.log('🗑️ Deleting metric:', deleteConfirmMetric.metric_name, 'ID:', deleteConfirmMetric.id);
+      
       // Get fresh session token
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
+        console.error('❌ No active session for delete operation');
         setToast({ message: 'Session expired. Please log in again.', type: 'error' });
         setTimeout(() => navigate('/login'), 2000);
         return;
       }
       
       const token = session.access_token;
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-716cadf3/metrics/${deleteConfirmMetric.id}`,
-        {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        }
-      );
+      const deleteUrl = `https://${projectId}.supabase.co/functions/v1/make-server-716cadf3/metrics/${deleteConfirmMetric.id}`;
+      console.log('📡 Sending DELETE request to:', deleteUrl);
+      
+      const response = await fetch(deleteUrl, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      console.log('📥 Delete response status:', response.status);
 
       if (response.ok) {
+        console.log('✅ Metric deleted successfully');
         setDeleteConfirmMetric(null);
         setIsLoading(true);
         await loadMetrics();
         setToast({ message: 'Metric deleted successfully', type: 'success' });
       } else {
+        const errorData = await response.text();
+        console.error('❌ Delete failed:', response.status, errorData);
         setToast({ message: 'Failed to delete metric', type: 'error' });
       }
     } catch (error) {
-      console.error('Error deleting metric:', error);
+      console.error('❌ Error deleting metric:', error);
       setToast({ message: 'Error deleting metric', type: 'error' });
     }
   };
@@ -728,13 +739,12 @@ export function DashboardPage() {
         />
       )}
 
-      {deleteConfirmMetric && (
-        <DeleteConfirmDialog
-          metricName={deleteConfirmMetric.metric_name}
-          onConfirm={handleDeleteConfirm}
-          onCancel={() => setDeleteConfirmMetric(null)}
-        />
-      )}
+      <DeleteConfirmDialog
+        isOpen={deleteConfirmMetric !== null}
+        metricName={deleteConfirmMetric?.metric_name || ''}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setDeleteConfirmMetric(null)}
+      />
 
       {/* Toast Notifications */}
       {toast && (

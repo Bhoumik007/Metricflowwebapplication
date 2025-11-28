@@ -52,20 +52,13 @@ export function MetricModal({ metric, onClose, onSave }: MetricModalProps) {
   const validate = () => {
     const newErrors: Record<string, string> = {};
     
-    if (!formData.metric_name.trim()) {
-      newErrors.metric_name = 'Metric name is required';
-    }
-    
+    // Only validate that negative values aren't entered
     if (formData.current_value < 0) {
       newErrors.current_value = 'Current value must be 0 or greater';
     }
     
-    if (formData.target_value <= 0) {
-      newErrors.target_value = 'Target value must be greater than 0';
-    }
-    
-    if (!formData.unit.trim()) {
-      newErrors.unit = 'Unit is required';
+    if (formData.target_value < 0) {
+      newErrors.target_value = 'Target value must be 0 or greater';
     }
     
     setErrors(newErrors);
@@ -249,7 +242,7 @@ export function MetricModal({ metric, onClose, onSave }: MetricModalProps) {
                 marginBottom: '8px'
               }}
             >
-              Metric Name <span style={{ color: '#EF4444' }}>*</span>
+              Metric Name
             </label>
             <input
               id="metric_name"
@@ -303,7 +296,7 @@ export function MetricModal({ metric, onClose, onSave }: MetricModalProps) {
                 marginBottom: '8px'
               }}
             >
-              Current Value <span style={{ color: '#EF4444' }}>*</span>
+              Current Value
             </label>
             <input
               id="current_value"
@@ -357,7 +350,7 @@ export function MetricModal({ metric, onClose, onSave }: MetricModalProps) {
                 marginBottom: '8px'
               }}
             >
-              Target Value <span style={{ color: '#EF4444' }}>*</span>
+              Target Value
             </label>
             <input
               id="target_value"
@@ -416,7 +409,7 @@ export function MetricModal({ metric, onClose, onSave }: MetricModalProps) {
                 marginBottom: '8px'
               }}
             >
-              Unit <span style={{ color: '#EF4444' }}>*</span>
+              Unit
             </label>
             <input
               id="unit"
@@ -473,7 +466,7 @@ export function MetricModal({ metric, onClose, onSave }: MetricModalProps) {
                 marginBottom: '8px'
               }}
             >
-              Category <span style={{ color: '#EF4444' }}>*</span>
+              Category
             </label>
             <select
               id="category"
