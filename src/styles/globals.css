@@ -1,15 +1,25 @@
 @import "tailwindcss";
 
-/* MetricFlow Color Palette */
+/* MetricFlow Premium Color Palette */
 :root {
-  --primary-blue: #3B82F6;
-  --primary-blue-hover: #2563EB;
+  /* Primary Colors */
+  --primary-blue: #2563EB;
+  --primary-blue-hover: #1D4ED8;
+  --accent-gold: #F59E0B;
   --success-green: #10B981;
-  --warning-orange: #F59E0B;
-  --danger-red: #EF4444;
-  --dark-text: #1F2937;
-  --gray-text: #6B7280;
-  --light-gray: #F3F4F6;
+  
+  /* Neutral Colors */
+  --dark-navy: #0F172A;
+  --medium-gray: #475569;
+  --light-gray: #94A3B8;
+  --background-white: #FFFFFF;
+  --background-light: #F8FAFC;
+  --border-color: #E2E8F0;
+  
+  /* Text Colors */
+  --text-primary: #0F172A;
+  --text-secondary: #64748B;
+  --text-tertiary: #94A3B8;
 }
 
 * {
@@ -18,41 +28,57 @@
   padding: 0;
 }
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", "SF Pro", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  color: var(--dark-text);
-  background-color: var(--light-gray);
-  line-height: 1.6;
+html {
+  scroll-behavior: smooth;
 }
 
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  color: var(--text-primary);
+  background-color: var(--background-white);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Premium Typography Scale */
+/* Display (Hero) - 72px on desktop */
 h1 {
-  font-size: 2.5rem;
+  font-size: 2.625rem; /* 42px mobile */
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--dark-navy);
+}
+
+@media (min-width: 768px) {
+  h1 {
+    font-size: 3.5rem; /* 56px tablet */
+  }
+}
+
+@media (min-width: 1200px) {
+  h1 {
+    font-size: 4.5rem; /* 72px desktop */
+  }
+}
+
+/* H1 (Section Titles) - 48px */
+h2 {
+  font-size: 3rem; /* 48px */
   font-weight: 700;
   line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--dark-navy);
 }
 
-@media (min-width: 640px) {
-  h1 {
-    font-size: 3rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  h1 {
-    font-size: 3.5rem;
-  }
-}
-
-h2 {
-  font-size: 1.875rem;
+/* H2 (Card Titles) - 22px */
+h3 {
+  font-size: 1.375rem; /* 22px */
   font-weight: 600;
   line-height: 1.3;
-}
-
-h3 {
-  font-size: 1.125rem;
-  font-weight: 600;
-  line-height: 1.4;
+  letter-spacing: -0.01em;
+  color: var(--dark-navy);
 }
 
 p {
@@ -63,11 +89,28 @@ p {
 button {
   font-family: inherit;
   cursor: pointer;
+  font-weight: 500;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--primary-blue);
+  outline-offset: 2px;
 }
 
 input, select, textarea {
   font-family: inherit;
   font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+input:focus, select:focus, textarea:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--primary-blue);
+  outline-offset: 0;
 }
 
 a {
@@ -91,6 +134,34 @@ a:hover {
   }
 }
 
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 .animate-slide-in {
   animation: slide-in 0.3s ease-out;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.2s ease-out;
 }

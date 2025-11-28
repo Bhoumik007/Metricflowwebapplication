@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
 import { Mail } from 'lucide-react';
-import { supabase } from '../utils/supabase/client';
+import { getSupabaseClient } from '../utils/supabase/client';
+
+const supabase = getSupabaseClient();
 
 export function ForgotPasswordPage() {
   const navigate = useNavigate();
@@ -48,27 +50,86 @@ export function ForgotPasswordPage() {
   };
   
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div 
+      className="min-h-screen flex flex-col"
+      style={{
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+      }}
+    >
       <Header />
       
-      <div className="max-w-md mx-auto px-4 py-12">
-        <div className="bg-white rounded-xl shadow-lg p-8">
-          <div className="text-center mb-8">
-            <div className="bg-blue-100 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-              <Mail className="text-blue-600" size={32} />
+      <div className="flex-1 flex items-center justify-center px-6 py-12">
+        <div 
+          className="w-full bg-white"
+          style={{
+            maxWidth: '480px',
+            borderRadius: '20px',
+            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15)',
+            padding: '64px 48px'
+          }}
+        >
+          <div className="text-center" style={{ marginBottom: '48px' }}>
+            <div 
+              className="inline-flex items-center justify-center"
+              style={{
+                width: '80px',
+                height: '80px',
+                borderRadius: '50%',
+                backgroundColor: '#EFF6FF',
+                marginBottom: '24px'
+              }}
+            >
+              <Mail size={40} style={{ color: '#2563EB' }} />
             </div>
-            <h1 className="text-3xl mb-2">Reset Your Password</h1>
-            <p className="text-gray-600">Enter your email and we'll send you a reset link</p>
+            <h1 
+              style={{
+                fontSize: '48px',
+                fontWeight: 800,
+                color: '#0F172A',
+                marginBottom: '12px',
+                letterSpacing: '-1px',
+                lineHeight: '1.1'
+              }}
+            >
+              Reset Password
+            </h1>
+            <p style={{
+              fontSize: '16px',
+              color: '#64748B'
+            }}>
+              Enter your email and we'll send you a reset link
+            </p>
           </div>
           
           {success ? (
             <div className="text-center">
-              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
-                Check your email for password reset instructions
+              <div 
+                style={{
+                  backgroundColor: '#D1FAE5',
+                  border: '2px solid #6EE7B7',
+                  color: '#059669',
+                  padding: '16px',
+                  borderRadius: '10px',
+                  marginBottom: '32px',
+                  fontSize: '15px',
+                  fontWeight: 500
+                }}
+              >
+                ✓ Check your email for password reset instructions
               </div>
               <button
                 onClick={() => navigate('/login')}
-                className="text-blue-600 hover:text-blue-700"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#2563EB',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  padding: 0,
+                  fontSize: '15px'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+                onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
               >
                 Back to Login
               </button>
@@ -76,43 +137,124 @@ export function ForgotPasswordPage() {
           ) : (
             <>
               {error && (
-                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-4">
+                <div 
+                  style={{
+                    backgroundColor: '#FEF2F2',
+                    border: '2px solid #FCA5A5',
+                    color: '#DC2626',
+                    padding: '12px 16px',
+                    borderRadius: '10px',
+                    marginBottom: '24px',
+                    fontSize: '14px'
+                  }}
+                >
                   {error}
                 </div>
               )}
               
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 <div>
-                  <label className="block text-sm text-gray-700 mb-1">
-                    Email <span className="text-red-500">*</span>
+                  <label 
+                    htmlFor="email"
+                    style={{
+                      display: 'block',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      color: '#0F172A',
+                      marginBottom: '8px'
+                    }}
+                  >
+                    Email <span style={{ color: '#EF4444' }}>*</span>
                   </label>
                   <input
+                    id="email"
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="your@email.com"
-                    className={`w-full px-3 py-2 border ${error ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setError('');
+                    }}
+                    placeholder="you@example.com"
                     disabled={isLoading}
+                    style={{
+                      width: '100%',
+                      height: '48px',
+                      padding: '14px 16px',
+                      border: `2px solid ${error ? '#EF4444' : '#E2E8F0'}`,
+                      borderRadius: '10px',
+                      fontSize: '16px',
+                      color: '#0F172A',
+                      transition: 'all 0.2s ease',
+                      outline: 'none'
+                    }}
+                    onFocus={(e) => {
+                      if (!error) {
+                        e.target.style.borderColor = '#2563EB';
+                        e.target.style.boxShadow = '0 0 0 4px rgba(37, 99, 235, 0.1)';
+                      }
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = error ? '#EF4444' : '#E2E8F0';
+                      e.target.style.boxShadow = 'none';
+                    }}
                   />
                 </div>
                 
                 <button
                   type="submit"
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                   disabled={isLoading}
+                  className="w-full text-white transition-all duration-300"
+                  style={{
+                    height: '52px',
+                    backgroundColor: isLoading ? '#94A3B8' : '#2563EB',
+                    fontSize: '16px',
+                    fontWeight: 600,
+                    borderRadius: '10px',
+                    border: 'none',
+                    cursor: isLoading ? 'not-allowed' : 'pointer',
+                    boxShadow: isLoading ? 'none' : '0 4px 12px rgba(37, 99, 235, 0.3)',
+                    marginTop: '8px'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isLoading) {
+                      e.currentTarget.style.backgroundColor = '#1D4ED8';
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 6px 20px rgba(37, 99, 235, 0.4)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isLoading) {
+                      e.currentTarget.style.backgroundColor = '#2563EB';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(37, 99, 235, 0.3)';
+                    }
+                  }}
                 >
                   {isLoading ? 'Sending...' : 'Send Reset Link'}
                 </button>
               </form>
               
-              <p className="text-center text-gray-600 mt-6">
-                <button
-                  onClick={() => navigate('/login')}
-                  className="text-blue-600 hover:text-blue-700"
-                >
-                  Back to Login
-                </button>
-              </p>
+              <div style={{ marginTop: '32px', textAlign: 'center' }}>
+                <p style={{ fontSize: '15px', color: '#64748B' }}>
+                  Remember your password?{' '}
+                  <button
+                    onClick={() => navigate('/login')}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#2563EB',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      padding: 0,
+                      fontSize: '15px'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+                    onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
+                  >
+                    Back to Login
+                  </button>
+                </p>
+              </div>
             </>
           )}
         </div>

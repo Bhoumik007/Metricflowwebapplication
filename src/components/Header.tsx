@@ -10,39 +10,84 @@ export function Header({ isAuthenticated = false, userName, onLogout }: HeaderPr
   const navigate = useNavigate();
   
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+    <header className="bg-white sticky top-0 z-40" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-10 lg:px-20">
+        <div className="flex items-center justify-between h-20">
           <button 
             onClick={() => navigate(isAuthenticated ? '/dashboard' : '/')}
             className="flex items-center hover:opacity-80 transition-opacity"
           >
-            <span className="text-blue-600 text-xl sm:text-2xl">MetricFlow</span>
+            <span className="text-2xl" style={{ 
+              color: '#2563EB',
+              fontWeight: 700,
+              letterSpacing: '-0.5px'
+            }}>
+              MetricFlow
+            </span>
           </button>
           
           {isAuthenticated ? (
-            <div className="flex items-center gap-3 sm:gap-4">
+            <div className="flex items-center gap-4">
               {userName && (
-                <span className="text-gray-700 text-sm hidden sm:block">Welcome, {userName}!</span>
+                <span className="text-sm hidden sm:block" style={{ color: '#475569' }}>
+                  Welcome, <span style={{ fontWeight: 600, color: '#0F172A' }}>{userName}</span>!
+                </span>
               )}
               <button
                 onClick={onLogout}
-                className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm"
+                className="px-7 py-3 rounded-lg text-sm transition-all duration-300"
+                style={{
+                  backgroundColor: '#F8FAFC',
+                  color: '#475569',
+                  fontWeight: 600,
+                  border: '1px solid #E2E8F0'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#F1F5F9';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#F8FAFC';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
               >
                 Logout
               </button>
             </div>
           ) : (
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex items-center gap-4">
               <button
                 onClick={() => navigate('/login')}
-                className="text-gray-700 hover:text-blue-600 px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm"
+                className="px-5 py-3 rounded-lg text-sm transition-colors"
+                style={{
+                  color: '#475569',
+                  fontWeight: 600
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.color = '#2563EB'}
+                onMouseLeave={(e) => e.currentTarget.style.color = '#475569'}
               >
                 Login
               </button>
               <button
                 onClick={() => navigate('/signup')}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm"
+                className="px-7 py-3 rounded-lg text-sm text-white transition-all duration-300"
+                style={{
+                  backgroundColor: '#2563EB',
+                  fontWeight: 600,
+                  boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#1D4ED8';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(37, 99, 235, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#2563EB';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(37, 99, 235, 0.2)';
+                }}
               >
                 Sign Up
               </button>

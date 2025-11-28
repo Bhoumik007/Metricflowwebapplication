@@ -60,174 +60,444 @@ export function SignupPage() {
     
     try {
       const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-716cadf3/auth/signup`,
+        `https://${projectId}.supabase.co/functions/v1/make-server-716cadf3/signup`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${publicAnonKey}`
+            'Authorization': `Bearer ${publicAnonKey}`,
           },
           body: JSON.stringify({
             email: formData.email,
             password: formData.password,
-            fullName: formData.fullName,
-            businessName: formData.businessName
-          })
+            full_name: formData.fullName,
+            business_name: formData.businessName
+          }),
         }
       );
-      
+
       const data = await response.json();
-      
+
       if (!response.ok) {
-        setServerError(data.error || 'Failed to sign up');
+        setServerError(data.error || 'Failed to create account');
         setIsLoading(false);
         return;
       }
-      
-      // Store session
-      localStorage.setItem('session', JSON.stringify(data.session));
-      localStorage.setItem('user', JSON.stringify(data.user));
-      
-      navigate('/dashboard');
+
+      if (data.access_token) {
+        localStorage.setItem('supabase.auth.token', data.access_token);
+        navigate('/dashboard');
+      }
     } catch (error) {
-      console.error('Sign up error:', error);
+      console.error('Signup error:', error);
       setServerError('An unexpected error occurred. Please try again.');
       setIsLoading(false);
     }
   };
-  
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData({ ...formData, [field]: value });
+    if (errors[field]) {
+      setErrors({ ...errors, [field]: '' });
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div 
+      className="min-h-screen flex flex-col"
+      style={{
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+      }}
+    >
       <Header />
       
-      <div className="max-w-md mx-auto px-4 py-12">
-        <div className="bg-white rounded-xl shadow-lg p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl mb-2">Create Your Account</h1>
-            <p className="text-gray-600">Start tracking your metrics today</p>
+      <div className="flex-1 flex items-center justify-center px-6 py-12">
+        <div 
+          className="w-full max-w-[480px] bg-white"
+          style={{
+            borderRadius: '20px',
+            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15)',
+            padding: '64px 48px'
+          }}
+        >
+          {/* Heading Section */}
+          <div className="text-center mb-12">
+            <h1 
+              style={{
+                fontSize: '48px',
+                fontWeight: 800,
+                color: '#0F172A',
+                marginBottom: '12px',
+                letterSpacing: '-1px',
+                lineHeight: '1.1'
+              }}
+            >
+              Create Account
+            </h1>
+            <p style={{
+              fontSize: '16px',
+              color: '#64748B'
+            }}>
+              Start tracking your metrics today
+            </p>
           </div>
-          
+
+          {/* Server Error */}
           {serverError && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-4">
+            <div 
+              style={{
+                backgroundColor: '#FEF2F2',
+                border: '2px solid #FCA5A5',
+                color: '#DC2626',
+                padding: '12px 16px',
+                borderRadius: '10px',
+                marginBottom: '24px',
+                fontSize: '14px'
+              }}
+            >
               {serverError}
             </div>
           )}
-          
-          <form onSubmit={handleSubmit} className="space-y-4">
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            {/* Full Name */}
             <div>
-              <label className="block text-sm text-gray-700 mb-1">
-                Full Name <span className="text-red-500">*</span>
+              <label 
+                htmlFor="fullName"
+                style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  color: '#0F172A',
+                  marginBottom: '8px'
+                }}
+              >
+                Full Name <span style={{ color: '#EF4444' }}>*</span>
               </label>
               <input
+                id="fullName"
                 type="text"
                 value={formData.fullName}
-                onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                className={`w-full px-3 py-2 border ${errors.fullName ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                disabled={isLoading}
+                onChange={(e) => handleInputChange('fullName', e.target.value)}
+                placeholder="John Doe"
+                style={{
+                  width: '100%',
+                  height: '48px',
+                  padding: '14px 16px',
+                  border: `2px solid ${errors.fullName ? '#EF4444' : '#E2E8F0'}`,
+                  borderRadius: '10px',
+                  fontSize: '16px',
+                  color: '#0F172A',
+                  transition: 'all 0.2s ease',
+                  outline: 'none'
+                }}
+                onFocus={(e) => {
+                  if (!errors.fullName) {
+                    e.target.style.borderColor = '#2563EB';
+                    e.target.style.boxShadow = '0 0 0 4px rgba(37, 99, 235, 0.1)';
+                  }
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = errors.fullName ? '#EF4444' : '#E2E8F0';
+                  e.target.style.boxShadow = 'none';
+                }}
               />
               {errors.fullName && (
-                <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>
+                <p style={{ fontSize: '13px', color: '#EF4444', marginTop: '6px' }}>
+                  {errors.fullName}
+                </p>
               )}
             </div>
-            
+
+            {/* Email */}
             <div>
-              <label className="block text-sm text-gray-700 mb-1">
-                Email <span className="text-red-500">*</span>
+              <label 
+                htmlFor="email"
+                style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  color: '#0F172A',
+                  marginBottom: '8px'
+                }}
+              >
+                Email <span style={{ color: '#EF4444' }}>*</span>
               </label>
               <input
+                id="email"
                 type="email"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className={`w-full px-3 py-2 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                disabled={isLoading}
+                onChange={(e) => handleInputChange('email', e.target.value)}
+                placeholder="you@example.com"
+                style={{
+                  width: '100%',
+                  height: '48px',
+                  padding: '14px 16px',
+                  border: `2px solid ${errors.email ? '#EF4444' : '#E2E8F0'}`,
+                  borderRadius: '10px',
+                  fontSize: '16px',
+                  color: '#0F172A',
+                  transition: 'all 0.2s ease',
+                  outline: 'none'
+                }}
+                onFocus={(e) => {
+                  if (!errors.email) {
+                    e.target.style.borderColor = '#2563EB';
+                    e.target.style.boxShadow = '0 0 0 4px rgba(37, 99, 235, 0.1)';
+                  }
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = errors.email ? '#EF4444' : '#E2E8F0';
+                  e.target.style.boxShadow = 'none';
+                }}
               />
               {errors.email && (
-                <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                <p style={{ fontSize: '13px', color: '#EF4444', marginTop: '6px' }}>
+                  {errors.email}
+                </p>
               )}
             </div>
-            
+
+            {/* Business Name (Optional) */}
             <div>
-              <label className="block text-sm text-gray-700 mb-1">
-                Password <span className="text-red-500">*</span>
+              <label 
+                htmlFor="businessName"
+                style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  color: '#0F172A',
+                  marginBottom: '8px'
+                }}
+              >
+                Business Name <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 400 }}>(Optional)</span>
               </label>
-              <div className="relative">
+              <input
+                id="businessName"
+                type="text"
+                value={formData.businessName}
+                onChange={(e) => handleInputChange('businessName', e.target.value)}
+                placeholder="Acme Inc."
+                style={{
+                  width: '100%',
+                  height: '48px',
+                  padding: '14px 16px',
+                  border: '2px solid #E2E8F0',
+                  borderRadius: '10px',
+                  fontSize: '16px',
+                  color: '#0F172A',
+                  transition: 'all 0.2s ease',
+                  outline: 'none'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#2563EB';
+                  e.target.style.boxShadow = '0 0 0 4px rgba(37, 99, 235, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#E2E8F0';
+                  e.target.style.boxShadow = 'none';
+                }}
+              />
+            </div>
+
+            {/* Password */}
+            <div>
+              <label 
+                htmlFor="password"
+                style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  color: '#0F172A',
+                  marginBottom: '8px'
+                }}
+              >
+                Password <span style={{ color: '#EF4444' }}>*</span>
+              </label>
+              <div style={{ position: 'relative' }}>
                 <input
+                  id="password"
                   type={showPassword ? 'text' : 'password'}
                   value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className={`w-full px-3 py-2 border ${errors.password ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10`}
-                  disabled={isLoading}
+                  onChange={(e) => handleInputChange('password', e.target.value)}
+                  placeholder="••••••••"
+                  style={{
+                    width: '100%',
+                    height: '48px',
+                    padding: '14px 48px 14px 16px',
+                    border: `2px solid ${errors.password ? '#EF4444' : '#E2E8F0'}`,
+                    borderRadius: '10px',
+                    fontSize: '16px',
+                    color: '#0F172A',
+                    transition: 'all 0.2s ease',
+                    outline: 'none'
+                  }}
+                  onFocus={(e) => {
+                    if (!errors.password) {
+                      e.target.style.borderColor = '#2563EB';
+                      e.target.style.boxShadow = '0 0 0 4px rgba(37, 99, 235, 0.1)';
+                    }
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = errors.password ? '#EF4444' : '#E2E8F0';
+                    e.target.style.boxShadow = 'none';
+                  }}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  style={{
+                    position: 'absolute',
+                    right: '16px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: '#94A3B8',
+                    padding: '4px'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = '#2563EB'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = '#94A3B8'}
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
               {errors.password && (
-                <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+                <p style={{ fontSize: '13px', color: '#EF4444', marginTop: '6px' }}>
+                  {errors.password}
+                </p>
               )}
             </div>
-            
+
+            {/* Confirm Password */}
             <div>
-              <label className="block text-sm text-gray-700 mb-1">
-                Confirm Password <span className="text-red-500">*</span>
+              <label 
+                htmlFor="confirmPassword"
+                style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  color: '#0F172A',
+                  marginBottom: '8px'
+                }}
+              >
+                Confirm Password <span style={{ color: '#EF4444' }}>*</span>
               </label>
-              <div className="relative">
+              <div style={{ position: 'relative' }}>
                 <input
+                  id="confirmPassword"
                   type={showConfirmPassword ? 'text' : 'password'}
                   value={formData.confirmPassword}
-                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                  className={`w-full px-3 py-2 border ${errors.confirmPassword ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10`}
-                  disabled={isLoading}
+                  onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                  placeholder="••••••••"
+                  style={{
+                    width: '100%',
+                    height: '48px',
+                    padding: '14px 48px 14px 16px',
+                    border: `2px solid ${errors.confirmPassword ? '#EF4444' : '#E2E8F0'}`,
+                    borderRadius: '10px',
+                    fontSize: '16px',
+                    color: '#0F172A',
+                    transition: 'all 0.2s ease',
+                    outline: 'none'
+                  }}
+                  onFocus={(e) => {
+                    if (!errors.confirmPassword) {
+                      e.target.style.borderColor = '#2563EB';
+                      e.target.style.boxShadow = '0 0 0 4px rgba(37, 99, 235, 0.1)';
+                    }
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = errors.confirmPassword ? '#EF4444' : '#E2E8F0';
+                    e.target.style.boxShadow = 'none';
+                  }}
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  style={{
+                    position: 'absolute',
+                    right: '16px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: '#94A3B8',
+                    padding: '4px'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = '#2563EB'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = '#94A3B8'}
                 >
                   {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
               {errors.confirmPassword && (
-                <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>
+                <p style={{ fontSize: '13px', color: '#EF4444', marginTop: '6px' }}>
+                  {errors.confirmPassword}
+                </p>
               )}
             </div>
-            
-            <div>
-              <label className="block text-sm text-gray-700 mb-1">
-                Business Name (Optional)
-              </label>
-              <input
-                type="text"
-                value={formData.businessName}
-                onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
-                placeholder="Your Company Name"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={isLoading}
-              />
-            </div>
-            
+
+            {/* Submit Button */}
             <button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
               disabled={isLoading}
+              className="w-full text-white transition-all duration-300"
+              style={{
+                height: '52px',
+                backgroundColor: isLoading ? '#94A3B8' : '#2563EB',
+                fontSize: '16px',
+                fontWeight: 600,
+                borderRadius: '10px',
+                border: 'none',
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+                boxShadow: isLoading ? 'none' : '0 4px 12px rgba(37, 99, 235, 0.3)',
+                marginTop: '8px'
+              }}
+              onMouseEnter={(e) => {
+                if (!isLoading) {
+                  e.currentTarget.style.backgroundColor = '#1D4ED8';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(37, 99, 235, 0.4)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isLoading) {
+                  e.currentTarget.style.backgroundColor = '#2563EB';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(37, 99, 235, 0.3)';
+                }
+              }}
             >
-              {isLoading ? 'Creating Account...' : 'Sign Up'}
+              {isLoading ? 'Creating Account...' : 'Create Account'}
             </button>
           </form>
-          
-          <p className="text-center text-gray-600 mt-6">
-            Already have an account?{' '}
-            <button
-              onClick={() => navigate('/login')}
-              className="text-blue-600 hover:text-blue-700"
-            >
-              Login
-            </button>
-          </p>
+
+          {/* Login Link */}
+          <div style={{ marginTop: '32px', textAlign: 'center' }}>
+            <p style={{ fontSize: '15px', color: '#64748B' }}>
+              Already have an account?{' '}
+              <button
+                onClick={() => navigate('/login')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#2563EB',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  padding: 0,
+                  fontSize: '15px'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+                onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
+              >
+                Login
+              </button>
+            </p>
+          </div>
         </div>
       </div>
     </div>
