@@ -72,11 +72,13 @@ export function DashboardPage() {
 
   const checkAuth = async () => {
     try {
+      console.log('🔐 Checking authentication...');
+      
       // First, try to get the current session
       const { data: { session }, error } = await supabase.auth.getSession();
       
       if (error) {
-        console.error('Session error:', error);
+        console.error('❌ Session error:', error);
         // Clear invalid tokens
         localStorage.removeItem('supabase.auth.token');
         navigate('/login');
@@ -84,21 +86,32 @@ export function DashboardPage() {
       }
       
       if (!session) {
-        console.log('No session found, redirecting to login');
-        localStorage.removeItem('supabase.auth.token');
-        navigate('/login');
+        console.log('❌ No session found');
+        // Try to refresh the session one more time
+        console.log('🔄 Attempting to refresh session...');
+        const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
+        
+        if (refreshError || !refreshedSession) {
+          console.log('❌ Session refresh failed, redirecting to login');
+          localStorage.removeItem('supabase.auth.token');
+          navigate('/login');
+          return;
+        }
+        
+        console.log('✅ Session refreshed successfully');
+        setUser(refreshedSession.user);
+        console.log('   👤 User:', refreshedSession.user.email);
         return;
       }
       
       // Store the access token
-      localStorage.setItem('supabase.auth.token', session.access_token);
       setUser(session.user);
       
       console.log('✅ Authentication successful');
       console.log('   👤 User:', session.user.email);
       console.log('   🔑 Session valid until:', new Date(session.expires_at! * 1000).toLocaleString());
     } catch (error) {
-      console.error('Auth check failed:', error);
+      console.error('❌ Auth check failed:', error);
       localStorage.removeItem('supabase.auth.token');
       navigate('/login');
     }

@@ -20,14 +20,23 @@ const supabase = createClient(
 async function verifyUser(request: Request) {
   const accessToken = request.headers.get('Authorization')?.split(' ')[1];
   if (!accessToken) {
+    console.log('❌ No authorization token in request');
     return { user: null, error: 'No authorization token provided' };
   }
   
+  console.log('🔐 Verifying user with token...');
   const { data: { user }, error } = await supabase.auth.getUser(accessToken);
-  if (error || !user) {
-    return { user: null, error: 'Unauthorized' };
+  if (error) {
+    console.log('❌ Token verification failed:', error.message);
+    return { user: null, error: `Token verification failed: ${error.message}` };
   }
   
+  if (!user) {
+    console.log('❌ No user found for token');
+    return { user: null, error: 'User not found' };
+  }
+  
+  console.log('✅ User verified:', user.id);
   return { user, error: null };
 }
 
@@ -36,12 +45,16 @@ async function verifyUser(request: Request) {
 // Sign up
 app.post('/make-server-716cadf3/auth/signup', async (c) => {
   try {
+    console.log('📝 Signup request received');
     const { email, password, fullName, businessName } = await c.req.json();
+    console.log('📝 Signup data:', { email, fullName, businessName: businessName || '(not provided)' });
     
     if (!email || !password || !fullName) {
+      console.log('❌ Validation failed: missing required fields');
       return c.json({ error: 'Email, password, and full name are required' }, 400);
     }
     
+    console.log('🔐 Creating user with Supabase admin...');
     const { data, error } = await supabase.auth.admin.createUser({
       email,
       password,
@@ -51,9 +64,16 @@ app.post('/make-server-716cadf3/auth/signup', async (c) => {
     });
     
     if (error) {
-      console.log(`Sign up error: ${error.message}`);
+      console.log(`❌ Supabase createUser error: ${error.message}`, error);
+      // Provide more helpful error messages
+      if (error.message.includes('already registered')) {
+        return c.json({ error: 'This email is already registered. Please use a different email or try logging in.' }, 400);
+      }
       return c.json({ error: error.message }, 400);
     }
+    
+    console.log(`✅ User created successfully: ${data.user?.id}`);
+    console.log('🔐 Auto-signing in user...');
     
     // Auto sign in the user
     const { data: sessionData, error: signInError } = await supabase.auth.signInWithPassword({
@@ -62,16 +82,19 @@ app.post('/make-server-716cadf3/auth/signup', async (c) => {
     });
     
     if (signInError) {
-      return c.json({ error: signInError.message }, 400);
+      console.log(`❌ Auto sign-in error: ${signInError.message}`, signInError);
+      return c.json({ error: `Account created but sign-in failed: ${signInError.message}` }, 400);
     }
     
+    console.log(`✅ Sign-in successful, returning session`);
     return c.json({ 
       user: data.user,
       session: sessionData.session
     });
   } catch (error) {
-    console.log(`Sign up error in main catch: ${error}`);
-    return c.json({ error: 'Failed to sign up' }, 500);
+    console.log(`❌ Sign up error in main catch:`, error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return c.json({ error: `Failed to sign up: ${errorMessage}` }, 500);
   }
 });
 

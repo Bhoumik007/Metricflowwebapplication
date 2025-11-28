@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
 import { Eye, EyeOff } from 'lucide-react';
 import { projectId, publicAnonKey } from '../utils/supabase/info';
+import { getSupabaseClient } from '../utils/supabase/client';
+
+const supabase = getSupabaseClient();
 
 export function SignupPage() {
   const navigate = useNavigate();
@@ -60,6 +63,13 @@ export function SignupPage() {
     
     try {
       console.log('📝 Signing up with:', formData.email);
+      console.log('📡 Request URL:', `https://${projectId}.supabase.co/functions/v1/make-server-716cadf3/auth/signup`);
+      console.log('📦 Request payload:', {
+        email: formData.email,
+        fullName: formData.fullName,
+        businessName: formData.businessName
+      });
+      
       const response = await fetch(
         `https://${projectId}.supabase.co/functions/v1/make-server-716cadf3/auth/signup`,
         {
@@ -77,10 +87,13 @@ export function SignupPage() {
         }
       );
 
+      console.log('📥 Response status:', response.status);
+      
       const data = await response.json();
+      console.log('📥 Response data:', data);
 
       if (!response.ok) {
-        console.error('❌ Signup error:', data.error);
+        console.error('❌ Signup error response:', data.error);
         setServerError(data.error || 'Failed to create account');
         setIsLoading(false);
         return;
@@ -88,16 +101,24 @@ export function SignupPage() {
 
       console.log('✅ Signup successful');
       if (data.session?.access_token) {
-        localStorage.setItem('supabase.auth.token', data.session.access_token);
+        console.log('🔐 Setting session in Supabase client...');
+        // Set the session in Supabase client for proper persistence
+        await supabase.auth.setSession({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token
+        });
+        console.log('✅ Session set successfully');
         console.log('🚀 Navigating to dashboard');
         navigate('/dashboard');
       } else {
+        console.error('❌ No session token in response');
         setServerError('Account created but login failed. Please try logging in.');
         setIsLoading(false);
       }
     } catch (error) {
-      console.error('❌ Signup error:', error);
-      setServerError('An unexpected error occurred. Please try again.');
+      console.error('❌ Signup exception:', error);
+      console.error('❌ Error details:', error instanceof Error ? error.message : String(error));
+      setServerError(`An unexpected error occurred: ${error instanceof Error ? error.message : String(error)}`);
       setIsLoading(false);
     }
   };
